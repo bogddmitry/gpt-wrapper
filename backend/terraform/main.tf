@@ -35,6 +35,24 @@ resource "aws_cognito_user_pool" "main" {
   auto_verified_attributes = ["email"]
 }
 
+# Google Identity Provider for Cognito User Pool
+resource "aws_cognito_user_pool_identity_provider" "google" {
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id     = "GOOGLE_CLIENT_ID_HERE"
+    client_secret = "GOOGLE_CLIENT_SECRET_HERE"
+    authorize_scopes = "openid email profile"
+  }
+
+  attribute_mapping = {
+    email    = "email"
+    username = "sub"
+  }
+}
+
 # Cognito User Pool Client
 resource "aws_cognito_user_pool_client" "main" {
   name         = "gpt-wrapper-client"
@@ -44,7 +62,7 @@ resource "aws_cognito_user_pool_client" "main" {
   allowed_oauth_scopes = ["email", "openid", "profile"]
   allowed_oauth_flows_user_pool_client = true
   callback_urls = ["http://localhost:5173/"] # Update for prod
-  supported_identity_providers = ["COGNITO", "Google"]
+  supported_identity_providers = ["COGNITO", aws_cognito_user_pool_identity_provider.google.provider_name]
 }
 
 # Cognito Identity Pool
@@ -55,21 +73,6 @@ resource "aws_cognito_identity_pool" "main" {
     client_id = aws_cognito_user_pool_client.main.id
     provider_name = aws_cognito_user_pool.main.endpoint
     server_side_token_check = false
-  }
-  supported_login_providers = {
-    "accounts.google.com" = aws_cognito_identity_pool_provider_google.main.client_id
-  }
-}
-
-# Google Identity Provider for Cognito
-resource "aws_cognito_identity_pool_provider_google" "main" {
-  client_id     = "GOOGLE_CLIENT_ID_HERE" # Replace with your Google client ID
-  client_secret = "GOOGLE_CLIENT_SECRET_HERE" # Enter manually or via SSM
-  provider_name = "Google"
-  user_pool_id  = aws_cognito_user_pool.main.id
-  attribute_mapping = {
-    email = "email"
-    username = "sub"
   }
 }
 
