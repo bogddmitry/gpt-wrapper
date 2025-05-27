@@ -33,41 +33,22 @@ resource "aws_dynamodb_table" "chat_history" {
   }
 }
 
-resource "aws_ssm_parameter" "gpt_api_token" {
-  name  = "/gpt-wrapper/gpt-api-token"
-  type  = "SecureString"
-  value = "REPLACE_ME"
-}
-
-resource "aws_ssm_parameter" "google_client_id" {
-  name  = "/gpt-wrapper/google-client-id"
-  type  = "String"
-  value = "GOOGLE_CLIENT_ID_HERE"
-}
-
-resource "aws_ssm_parameter" "google_client_secret" {
-  name  = "/gpt-wrapper/google-client-secret"
-  type  = "SecureString"
-  value = "GOOGLE_CLIENT_SECRET_HERE"
-}
-
-resource "aws_ssm_parameter" "google_authorize_scopes" {
-  name  = "/gpt-wrapper/google-authorize-scopes"
-  type  = "String"
-  value = "openid email profile"
+data "aws_ssm_parameter" "gpt_api_token" {
+  name = "/gpt-wrapper/gpt-api-token"
+  with_decryption = true
 }
 
 data "aws_ssm_parameter" "google_client_id" {
-  name = aws_ssm_parameter.google_client_id.name
+  name = "/gpt-wrapper/google-client-id"
 }
 
 data "aws_ssm_parameter" "google_client_secret" {
-  name = aws_ssm_parameter.google_client_secret.name
+  name = "/gpt-wrapper/google-client-secret"
   with_decryption = true
 }
 
 data "aws_ssm_parameter" "google_authorize_scopes" {
-  name = aws_ssm_parameter.google_authorize_scopes.name
+  name = "/gpt-wrapper/google-authorize-scopes"
 }
 
 # Cognito User Pool
