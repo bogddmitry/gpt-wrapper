@@ -49,18 +49,17 @@ jobs:
           path: backend/target
       - name: Build Docker image
         run: docker build -t gpt-wrapper-backend ./backend
-      - name: Upload backend JAR
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-jar
-          path: backend/target/backend-0.0.1-SNAPSHOT.jar
-
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [dockerize, build-frontend]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Download backend JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Configure AWS credentials
