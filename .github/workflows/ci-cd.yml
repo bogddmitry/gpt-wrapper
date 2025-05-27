@@ -49,6 +49,11 @@ jobs:
           path: backend/target
       - name: Build Docker image
         run: docker build -t gpt-wrapper-backend ./backend
+      - name: Upload backend JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-jar
+          path: backend/target/backend-0.0.1-SNAPSHOT.jar
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
