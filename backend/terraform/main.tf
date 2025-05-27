@@ -6,6 +6,13 @@ terraform {
       version = ">= 4.0"
     }
   }
+  backend "s3" {
+    bucket         = "gpt-wrapper-terraform"
+    key            = "gpt-wrapper/terraform.tfstate"
+    region         = "eu-central-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
