@@ -49,6 +49,14 @@ jobs:
           path: backend/target
       - name: Build Docker image
         run: docker build -t gpt-wrapper-backend ./backend
+      - name: Save Docker image
+        run: docker save gpt-wrapper-backend:latest -o gpt-wrapper-backend.tar
+      - name: Upload Docker image
+        uses: actions/upload-artifact@v4
+        with:
+          name: gpt-wrapper-backend-image
+          path: gpt-wrapper-backend.tar
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [dockerize, build-frontend]
@@ -60,6 +68,13 @@ jobs:
         with:
           name: backend-jar
           path: backend/target
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: gpt-wrapper-backend-image
+          path: .
+      - name: Load Docker image
+        run: docker load -i gpt-wrapper-backend.tar
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Configure AWS credentials
