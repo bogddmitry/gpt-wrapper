@@ -77,7 +77,7 @@ resource "aws_cognito_user_pool" "main" {
 }
 
 # Google Identity Provider for Cognito User Pool
-resource "aws_cognito_user_pool_identity_provider" "google" {
+resource "aws_cognito_identity_provider" "google" {
   user_pool_id  = aws_cognito_user_pool.main.id
   provider_name = "Google"
   provider_type = "Google"
