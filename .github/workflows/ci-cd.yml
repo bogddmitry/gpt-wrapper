@@ -72,7 +72,15 @@ jobs:
         run: terraform -chdir=backend/terraform init
       - name: Terraform Apply
         run: terraform -chdir=backend/terraform apply -auto-approve
-      - name: Docker Push (placeholder)
-        run: echo "Push Docker image to ECR here"
-      - name: Upload Frontend to S3 (placeholder)
-        run: echo "Upload frontend build to S3 here"
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
+      - name: Tag Docker image
+        run: |
+          docker tag gpt-wrapper-backend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com/gpt-wrapper-backend:latest
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com/gpt-wrapper-backend:latest
+      - name: Upload Frontend to S3
+        run: |
+          aws s3 sync frontend/build s3://${{ secrets.FRONTEND_BUCKET }}/ --delete
