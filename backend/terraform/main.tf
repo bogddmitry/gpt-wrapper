@@ -1,5 +1,5 @@
 provider "aws" {
-  region = "us-east-1"
+  region = "eu-central-1"
 }
 
 resource "aws_dynamodb_table" "chat_history" {
@@ -29,6 +29,37 @@ resource "aws_ssm_parameter" "gpt_api_token" {
   value = "REPLACE_ME"
 }
 
+resource "aws_ssm_parameter" "google_client_id" {
+  name  = "/gpt-wrapper/google-client-id"
+  type  = "String"
+  value = "GOOGLE_CLIENT_ID_HERE"
+}
+
+resource "aws_ssm_parameter" "google_client_secret" {
+  name  = "/gpt-wrapper/google-client-secret"
+  type  = "SecureString"
+  value = "GOOGLE_CLIENT_SECRET_HERE"
+}
+
+resource "aws_ssm_parameter" "google_authorize_scopes" {
+  name  = "/gpt-wrapper/google-authorize-scopes"
+  type  = "String"
+  value = "openid email profile"
+}
+
+data "aws_ssm_parameter" "google_client_id" {
+  name = aws_ssm_parameter.google_client_id.name
+}
+
+data "aws_ssm_parameter" "google_client_secret" {
+  name = aws_ssm_parameter.google_client_secret.name
+  with_decryption = true
+}
+
+data "aws_ssm_parameter" "google_authorize_scopes" {
+  name = aws_ssm_parameter.google_authorize_scopes.name
+}
+
 # Cognito User Pool
 resource "aws_cognito_user_pool" "main" {
   name = "gpt-wrapper-user-pool"
@@ -42,9 +73,9 @@ resource "aws_cognito_user_pool_identity_provider" "google" {
   provider_type = "Google"
 
   provider_details = {
-    client_id     = "GOOGLE_CLIENT_ID_HERE"
-    client_secret = "GOOGLE_CLIENT_SECRET_HERE"
-    authorize_scopes = "openid email profile"
+    client_id     = data.aws_ssm_parameter.google_client_id.value
+    client_secret = data.aws_ssm_parameter.google_client_secret.value
+    authorize_scopes = data.aws_ssm_parameter.google_authorize_scopes.value
   }
 
   attribute_mapping = {
