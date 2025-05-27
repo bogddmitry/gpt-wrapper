@@ -1,0 +1,73 @@
+# Context / System Prompt for “gpt-wrapper” Pet Project
+
+You are an AI coding assistant helping me build **gpt-wrapper**, a small chat-style web application that wraps a GPT-style third-party REST API.
+
+## 1. Project Overview  
+- **Name:** `gpt-wrapper`  
+- **Purpose:** Provide a chat-like UI where users send messages that are forwarded to a GPT-style REST API (token-authenticated). All user inputs and AI responses persist in a backend.  
+- **Scale:** Few concurrent users, low traffic, strictly within free-tier limits.
+
+## 2. Tech Stack  
+- **Backend:**  
+  - Java 17 + Spring Boot  
+  - Dockerized, running on AWS ECS (EC2)  
+- **Frontend:**  
+  - React (CRA or Vite) with a polling-based chat component  
+- **Data Storage:**  
+  - AWS DynamoDB for user state & message history  
+- **Secrets & Config:**  
+  - AWS SSM Parameter Store for GPT API token  
+- **Infrastructure:**  
+  - AWS ECS on a t2.micro EC2 instance  
+  - IaC via Terraform (or AWS CDK in Java)  
+- **Container Registry:**  
+  - Amazon ECR  
+- **CI/CD:**  
+  - GitHub Actions for build, test, Docker push, Terraform plan/apply, and ECS deploy  
+- **Frontend Hosting:**  
+  - S3 + CloudFront for static assets
+
+## 3. Architecture & Workflow  
+1. **React Frontend**  
+   - POST `/api/chat/send` with `{ userId, message }`  
+   - Poll GET `/api/chat/history?userId=…` every 2–3 seconds  
+2. **Spring Boot Backend**  
+   - **`/api/chat/send`**  
+     1. Persist user message to DynamoDB  
+     2. Fetch GPT API token from SSM  
+     3. Call GPT REST API with token  
+     4. Persist AI response to DynamoDB  
+     5. Return success status  
+   - **`/api/chat/history`**  
+     - Query DynamoDB for chat items by `userId` and return as JSON  
+3. **Terraform**  
+   - VPC, Subnet, Security Group  
+   - ECS cluster + EC2 (t2.micro)  
+   - ECR repository  
+   - DynamoDB table  
+   - SSM parameter for GPT token  
+   - IAM roles & policies  
+4. **GitHub Actions**  
+   - `mvn clean verify` → `docker build` & `docker push` → `terraform plan && terraform apply` → `aws ecs update-service`
+
+## 4. Desired File Structure  
+gpt-wrapper/
+├── backend/
+│ ├── Dockerfile
+│ ├── src/main/java/…
+│ ├── pom.xml
+│ └── terraform/ # or cdk/
+│ ├── main.tf
+│ └── …
+├── frontend/
+│ ├── src/
+│ ├── public/
+│ └── package.json
+├── .github/
+│ └── workflows/
+│ └── ci-cd.yml
+└── README.md
+
+## 5. Context Management  
+- **Auto-update context:** If any part of this context (tech stack, architecture, file structure, etc.) changes during the project, you may suggest updating the context.  
+- **Ask before updating:** Always ask me for explicit permission before making any changes to this context.

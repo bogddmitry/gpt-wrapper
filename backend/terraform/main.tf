@@ -1,0 +1,84 @@
+provider "aws" {
+  region = "us-east-1"
+}
+
+resource "aws_dynamodb_table" "chat_history" {
+  name           = "gpt-wrapper-chat-history"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "userId"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+  attribute {
+    name = "timestamp"
+    type = "N"
+  }
+  global_secondary_index {
+    name               = "userId-timestamp-index"
+    hash_key           = "userId"
+    range_key          = "timestamp"
+    projection_type    = "ALL"
+  }
+}
+
+resource "aws_ssm_parameter" "gpt_api_token" {
+  name  = "/gpt-wrapper/gpt-api-token"
+  type  = "SecureString"
+  value = "REPLACE_ME"
+}
+
+# Cognito User Pool
+resource "aws_cognito_user_pool" "main" {
+  name = "gpt-wrapper-user-pool"
+  auto_verified_attributes = ["email"]
+}
+
+# Cognito User Pool Client
+resource "aws_cognito_user_pool_client" "main" {
+  name         = "gpt-wrapper-client"
+  user_pool_id = aws_cognito_user_pool.main.id
+  generate_secret = false
+  allowed_oauth_flows = ["code"]
+  allowed_oauth_scopes = ["email", "openid", "profile"]
+  allowed_oauth_flows_user_pool_client = true
+  callback_urls = ["http://localhost:5173/"] # Update for prod
+  supported_identity_providers = ["COGNITO", "Google"]
+}
+
+# Cognito Identity Pool
+resource "aws_cognito_identity_pool" "main" {
+  identity_pool_name               = "gpt-wrapper-identity-pool"
+  allow_unauthenticated_identities = false
+  cognito_identity_providers {
+    client_id = aws_cognito_user_pool_client.main.id
+    provider_name = aws_cognito_user_pool.main.endpoint
+    server_side_token_check = false
+  }
+  supported_login_providers = {
+    "accounts.google.com" = aws_cognito_identity_pool_provider_google.main.client_id
+  }
+}
+
+# Google Identity Provider for Cognito
+resource "aws_cognito_identity_pool_provider_google" "main" {
+  client_id     = "GOOGLE_CLIENT_ID_HERE" # Replace with your Google client ID
+  client_secret = "GOOGLE_CLIENT_SECRET_HERE" # Enter manually or via SSM
+  provider_name = "Google"
+  user_pool_id  = aws_cognito_user_pool.main.id
+  attribute_mapping = {
+    email = "email"
+    username = "sub"
+  }
+}
+
+output "cognito_user_pool_id" {
+  value = aws_cognito_user_pool.main.id
+}
+output "cognito_user_pool_client_id" {
+  value = aws_cognito_user_pool_client.main.id
+}
+output "cognito_identity_pool_id" {
+  value = aws_cognito_identity_pool.main.id
+}
