@@ -36,6 +36,11 @@ jobs:
         run: cd frontend && npm install
       - name: Build frontend
         run: cd frontend && npm run build
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
 
   dockerize:
     needs: [build-backend]
@@ -75,6 +80,11 @@ jobs:
           path: .
       - name: Load Docker image
         run: docker load -i gpt-wrapper-backend.tar
+      - name: Download frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
       - name: Configure AWS credentials
