@@ -1,11 +1,11 @@
 const awsconfig = {
   Auth: {
     region: 'eu-central-1',
-    userPoolId: '<COGNITO_USER_POOL_ID>',
-    userPoolWebClientId: '<COGNITO_USER_POOL_CLIENT_ID>',
-    identityPoolId: '<COGNITO_IDENTITY_POOL_ID>',
+    userPoolId: 'eu-central-1_EzUfGhX4Q',
+    userPoolWebClientId: 'ukm4ait9ubtm12mrji6trjfhg',
+    identityPoolId: 'eu-central-1:0e6b9205-a0fb-40ff-9f6e-d020afc13369',
     oauth: {
-      domain: '<COGNITO_DOMAIN>', // e.g. gpt-wrapper.auth.eu-central-1.amazoncognito.com
+      domain: 'gpt-wrapper', // e.g. gpt-wrapper.auth.eu-central-1.amazoncognito.com
       scope: ['email', 'openid', 'profile'],
       redirectSignIn: 'http://localhost:5173/',
       redirectSignOut: 'http://localhost:5173/',
