@@ -105,6 +105,42 @@ resource "aws_cognito_identity_pool" "main" {
   }
 }
 
+# Use existing S3 bucket for frontend
+
+data "aws_s3_bucket" "frontend" {
+  bucket = "gpt-wrapper-backet"
+}
+
+# Update S3 bucket policy to use the data source
+resource "aws_s3_bucket_policy" "frontend" {
+  bucket = data.aws_s3_bucket.frontend.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          AWS = aws_cloudfront_origin_access_identity.frontend.iam_arn
+        }
+        Action = ["s3:GetObject"]
+        Resource = ["${data.aws_s3_bucket.frontend.arn}/*"]
+      }
+    ]
+  })
+}
+
+# Update CloudFront distribution origin to use the data source
+resource "aws_cloudfront_distribution" "frontend" {
+  origin {
+    domain_name = data.aws_s3_bucket.frontend.bucket_regional_domain_name
+    origin_id   = "s3-frontend"
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.frontend.cloudfront_access_identity_path
+    }
+  }
+  # ... existing code ...
+}
+
 output "cognito_user_pool_id" {
   value = aws_cognito_user_pool.main.id
 }
@@ -113,4 +149,7 @@ output "cognito_user_pool_client_id" {
 }
 output "cognito_identity_pool_id" {
   value = aws_cognito_identity_pool.main.id
+}
+output "frontend_bucket_name" {
+  value = data.aws_s3_bucket.frontend.bucket
 }
