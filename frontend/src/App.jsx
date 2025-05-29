@@ -1,19 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Amplify, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import Login from './Login';
 
 Amplify.configure(awsconfig);
 
-function App() {
+function Chat({ user, setUser }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(setUser)
-      .catch(() => setUser(null));
-  }, []);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!user) return;
@@ -41,23 +37,11 @@ function App() {
     setInput('');
   };
 
-  const signIn = () => {
-    Auth.federatedSignIn({ provider: 'Google' });
-  };
-
   const signOut = () => {
     Auth.signOut();
     setUser(null);
+    navigate('/login');
   };
-
-  if (!user) {
-    return (
-      <div style={{ maxWidth: 600, margin: '2rem auto', fontFamily: 'sans-serif' }}>
-        <h2>GPT Wrapper Chat</h2>
-        <button onClick={signIn}>Sign in with Google</button>
-      </div>
-    );
-  }
 
   return (
     <div style={{ maxWidth: 600, margin: '2rem auto', fontFamily: 'sans-serif' }}>
@@ -75,6 +59,29 @@ function App() {
         <button type="submit">Send</button>
       </form>
     </div>
+  );
+}
+
+function App() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Auth.currentAuthenticatedUser()
+      .then(setUser)
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
+        <Route path="/" element={user ? <Chat user={user} setUser={setUser} /> : <Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
 }
 
