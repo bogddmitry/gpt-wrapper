@@ -138,6 +138,7 @@ resource "aws_cloudfront_distribution" "frontend" {
       origin_access_identity = aws_cloudfront_origin_access_identity.frontend.cloudfront_access_identity_path
     }
   }
+  default_root_object = "index.html"
   enabled = true
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
@@ -176,4 +177,7 @@ output "cognito_identity_pool_id" {
 }
 output "frontend_bucket_name" {
   value = data.aws_s3_bucket.frontend.bucket
+}
+output "frontend_cloudfront_domain" {
+  value = aws_cloudfront_distribution.frontend.domain_name
 }
