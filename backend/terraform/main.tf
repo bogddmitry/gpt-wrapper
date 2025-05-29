@@ -141,6 +141,10 @@ resource "aws_cloudfront_distribution" "frontend" {
   # ... existing code ...
 }
 
+resource "aws_cloudfront_origin_access_identity" "frontend" {
+  comment = "OAI for gpt-wrapper frontend"
+}
+
 output "cognito_user_pool_id" {
   value = aws_cognito_user_pool.main.id
 }
