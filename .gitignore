@@ -22,3 +22,30 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
+
+# Node modules and frontend build
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# Environment files
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+backend/.env
+backend/.env.*
+
+# AWS Amplify auto-generated
+frontend/src/aws-exports.js
+
+# Java build
+backend/target/
+
+# VSCode
+.vscode/
+
+# Terraform state
+backend/terraform/*.tfstate
+backend/terraform/*.tfstate.backup
