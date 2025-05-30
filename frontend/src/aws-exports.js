@@ -7,8 +7,8 @@ const awsconfig = {
     oauth: {
       domain: 'gpt-wrapper.auth.eu-central-1.amazoncognito.com', // e.g. gpt-wrapper.auth.eu-central-1.amazoncognito.com
       scope: ['email', 'openid', 'profile'],
-      redirectSignIn: 'http://localhost:5173/',
-      redirectSignOut: 'http://localhost:5173/',
+      redirectSignIn: 'https://d11e3ixoa4l8th.cloudfront.net/',
+      redirectSignOut: 'https://d11e3ixoa4l8th.cloudfront.net/',
       responseType: 'code',
     },
   },
