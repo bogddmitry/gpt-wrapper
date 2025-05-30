@@ -20,7 +20,7 @@ const card = {
 
 function Login() {
   const handleCognitoLogin = () => {
-    Auth.federatedSignIn();
+    Auth.federatedSignIn({ provider: 'Google' });
   };
 
   return (
