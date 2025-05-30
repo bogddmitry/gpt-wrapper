@@ -2,3 +2,5 @@ aws:
   cognito:
     region: eu-central-1
     user-pool-id: eu-central-1_EzUfGhX4Q
+google:
+  client-id: YOUR_GOOGLE_CLIENT_ID

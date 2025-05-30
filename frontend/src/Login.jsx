@@ -1,5 +1,5 @@
 import React from 'react';
-import { GoogleLogin } from '@react-oauth/google';
+import { Auth } from 'aws-amplify';
 
 const loginContainer = {
   display: 'flex',
@@ -18,21 +18,9 @@ const card = {
   textAlign: 'center',
 };
 
-function Login({ onLogin }) {
-  const handleGoogleSuccess = async (credentialResponse) => {
-    const token = credentialResponse.credential;
-    const res = await fetch('/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token }),
-    });
-    if (res.ok) {
-      const data = await res.json();
-      // Store JWT or call onLogin
-      if (onLogin) onLogin(data.jwt);
-    } else {
-      alert('Google authentication failed');
-    }
+function Login() {
+  const handleCognitoLogin = () => {
+    Auth.federatedSignIn();
   };
 
   return (
@@ -40,10 +28,9 @@ function Login({ onLogin }) {
       <div style={card}>
         <h2>Welcome to GPT Wrapper</h2>
         <p>Sign in to continue</p>
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => alert('Google Login Failed')}
-        />
+        <button onClick={handleCognitoLogin} style={{ padding: '0.5rem 2rem', fontSize: 18 }}>
+          Sign in with Google
+        </button>
       </div>
     </div>
   );
