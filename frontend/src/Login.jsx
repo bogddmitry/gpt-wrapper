@@ -1,5 +1,5 @@
 import React from 'react';
-import { Auth } from 'aws-amplify';
+import { GoogleLogin } from '@react-oauth/google';
 
 const loginContainer = {
   display: 'flex',
@@ -18,23 +18,21 @@ const card = {
   textAlign: 'center',
 };
 
-const googleBtn = {
-  marginTop: '1.5rem',
-  padding: '0.75rem 2rem',
-  fontSize: '1.1rem',
-  borderRadius: '6px',
-  border: 'none',
-  background: '#4285F4',
-  color: '#fff',
-  cursor: 'pointer',
-  fontWeight: 600,
-  boxShadow: '0 2px 8px rgba(66,133,244,0.15)',
-  transition: 'background 0.2s',
-};
-
-function Login() {
-  const signIn = () => {
-    Auth.federatedSignIn({ provider: 'Google' });
+function Login({ onLogin }) {
+  const handleGoogleSuccess = async (credentialResponse) => {
+    const token = credentialResponse.credential;
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      // Store JWT or call onLogin
+      if (onLogin) onLogin(data.jwt);
+    } else {
+      alert('Google authentication failed');
+    }
   };
 
   return (
@@ -42,10 +40,10 @@ function Login() {
       <div style={card}>
         <h2>Welcome to GPT Wrapper</h2>
         <p>Sign in to continue</p>
-        <button style={googleBtn} onClick={signIn}>
-          <img src="https://developers.google.com/identity/images/g-logo.png" alt="Google" style={{ width: 22, marginRight: 12, verticalAlign: 'middle' }} />
-          Sign in with Google
-        </button>
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => alert('Google Login Failed')}
+        />
       </div>
     </div>
   );

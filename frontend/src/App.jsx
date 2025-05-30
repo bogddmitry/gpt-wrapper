@@ -3,6 +3,7 @@ import { Amplify, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import Login from './Login';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 Amplify.configure(awsconfig);
 
@@ -63,25 +64,20 @@ function Chat({ user, setUser }) {
 }
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [jwt, setJwt] = useState(null);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    Auth.currentAuthenticatedUser()
-      .then(setUser)
-      .catch(() => setUser(null))
-      .finally(() => setLoading(false));
-  }, []);
 
   if (loading) return null;
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
-        <Route path="/" element={user ? <Chat user={user} setUser={setUser} /> : <Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
+      <Router>
+        <Routes>
+          <Route path="/login" element={!jwt ? <Login onLogin={setJwt} /> : <Navigate to="/" />} />
+          <Route path="/" element={jwt ? <div>Logged in with Google! JWT: {jwt}</div> : <Navigate to="/login" />} />
+        </Routes>
+      </Router>
+    </GoogleOAuthProvider>
   );
 }
 
