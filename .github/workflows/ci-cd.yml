@@ -68,74 +68,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check for backend or terraform changes
-        id: backend_changes
-        run: |
-          git fetch origin main
-          if git diff --name-only origin/main...${{ github.sha }} -- 'backend/**' 'terraform/**' | grep .; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
-      - name: Check for frontend or terraform changes
-        id: frontend_changes
-        run: |
-          git fetch origin main
-          if git diff --name-only origin/main...${{ github.sha }} -- 'frontend/**' 'terraform/**' | grep .; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-          fi
       - name: Download backend JAR
-        if: steps.backend_changes.outputs.changed == 'true'
         uses: actions/download-artifact@v4
         with:
           name: backend-jar
           path: backend/target
       - name: Download Docker image
-        if: steps.backend_changes.outputs.changed == 'true'
         uses: actions/download-artifact@v4
         with:
           name: gpt-wrapper-backend-image
           path: .
       - name: Load Docker image
-        if: steps.backend_changes.outputs.changed == 'true'
         run: docker load -i gpt-wrapper-backend.tar
       - name: Download frontend build
-        if: steps.frontend_changes.outputs.changed == 'true'
         uses: actions/download-artifact@v4
         with:
           name: frontend-build
           path: frontend/dist
       - name: Set up Terraform
-        if: steps.backend_changes.outputs.changed == 'true' || steps.frontend_changes.outputs.changed == 'true'
         uses: hashicorp/setup-terraform@v3
       - name: Configure AWS credentials
-        if: steps.backend_changes.outputs.changed == 'true' || steps.frontend_changes.outputs.changed == 'true'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: eu-central-1
       - name: Terraform Init
-        if: steps.backend_changes.outputs.changed == 'true' || steps.frontend_changes.outputs.changed == 'true'
-        run: terraform -chdir=terraform init
+        run: terraform -chdir=backend/terraform init
       - name: Terraform Apply
-        if: steps.backend_changes.outputs.changed == 'true' || steps.frontend_changes.outputs.changed == 'true'
-        run: terraform -chdir=terraform apply -auto-approve
+        run: terraform -chdir=backend/terraform apply -auto-approve
       - name: Login to Amazon ECR
-        if: steps.backend_changes.outputs.changed == 'true'
         run: |
           aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com
       - name: Tag Docker image
-        if: steps.backend_changes.outputs.changed == 'true'
         run: |
           docker tag gpt-wrapper-backend:latest ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com/gpt-wrapper-backend:latest
       - name: Push Docker image to ECR
-        if: steps.backend_changes.outputs.changed == 'true'
         run: |
           docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.eu-central-1.amazonaws.com/gpt-wrapper-backend:latest
       - name: Upload Frontend to S3
-        if: steps.frontend_changes.outputs.changed == 'true'
         run: |
           aws s3 sync frontend/dist s3://${{ secrets.FRONTEND_BUCKET }}/ --delete
