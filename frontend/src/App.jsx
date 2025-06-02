@@ -3,6 +3,7 @@ import { Amplify, Auth } from 'aws-amplify';
 import awsconfig from './aws-exports';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './Login';
+import ChatList from './ChatList';
 
 Amplify.configure(awsconfig);
 
@@ -38,8 +39,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={!user ? <Login /> : <Navigate to="/" />} />
-        <Route path="/" element={user ? <div>Welcome, {user.email || user.sub}!</div> : <Navigate to="/login" />} />
+        <Route path="/login" element={!user ? <Login /> : <Navigate to="/chats" />} />
+        <Route path="/chats" element={user ? <ChatList user={user} /> : <Navigate to="/login" />} />
+        <Route path="/" element={<Navigate to={user ? "/chats" : "/login"} />} />
       </Routes>
     </Router>
   );
